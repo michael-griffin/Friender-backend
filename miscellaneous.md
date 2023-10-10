@@ -13,3 +13,8 @@ def get_lucky_num():
 
     return jsonify({"errors": form.errors}), 400
 ```
+
+
+In ipython
+%run app.py
+db.create_all()

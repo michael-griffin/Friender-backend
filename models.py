@@ -1,8 +1,12 @@
+import os
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+import jwt
+
 
 db = SQLAlchemy()
-
+bcrypt = Bcrypt()
 
 def connect_db(app):
     """Connect to database."""
@@ -51,24 +55,39 @@ class User(db.Model):
     def signup(cls, username, password, hobbies, interests, location, radius=10):
         """Method to sign up a new user"""
 
-        hashed_pwd = Bcrypt.generate_password_hash(
+        hashed_pwd = bcrypt.generate_password_hash(
             password).decode('UTF-8')
 
         new_user = User(username=username, password=hashed_pwd, hobbies=hobbies,
                         interests=interests, location=location, radius=radius)
 
         db.session.add(new_user)
-        return new_user
+
+        #jwt encode token based off
+        jwt_token = jwt.encode(new_user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
+        return jwt_token
 
     @classmethod
     def authenticate(cls, username, password):
         """Decode and confirm user password for user auth"""
 
-        u = cls.query.filter_by(username=username).one_or_none()
+        user = cls.query.filter_by(username=username).one_or_none()
 
-        unhashed_pwd = Bcrypt.check_password_hash(password)
+        unhashed_pwd = bcrypt.check_password_hash(password)
 
-        if u.password == unhashed_pwd:
-            return u
+        if user.password == unhashed_pwd:
+            jwt_token = jwt.encode(user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
+            return jwt_token
         else:
             return False
+
+    def serialize(self):
+        """Serialize to dictionary."""
+
+        return {
+            "username": self.username,
+            "hobbies" : self.hobbies,
+            "interests" : self.interests,
+            "location" : self.location,
+            "radius" : self.radius
+        }
