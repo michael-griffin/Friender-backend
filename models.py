@@ -17,6 +17,52 @@ def connect_db(app):
     db.init_app(app)
 
 
+class Like(db.Model):
+    """Table for user's likes"""
+    __tablename__ = 'likes'
+    user_liking = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True
+    )
+
+    user_being_liked = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True
+    )
+
+    @classmethod
+    def add_like(cls, user_liking, user_being_liked):
+        like = cls(user_liking=user_liking, user_being_liked=user_being_liked)
+        db.session.add(like)
+
+        return like
+
+
+class DisLike(db.Model):
+    """Table for user's likes"""
+    __tablename__ = 'dislikes'
+    user_disliking = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True
+    )
+
+    user_being_disliked = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True
+    )
+
+    @classmethod
+    def add_dislike(cls, user_disliking, user_being_disliked):
+        dislike = cls(user_disliking=user_disliking,
+                      user_being_disliked=user_being_disliked)
+        db.session.add(dislike)
+
+        return dislike
+
 class User(db.Model):
     """Model for User in Friender"""
 
@@ -51,6 +97,17 @@ class User(db.Model):
         db.Integer,
         nullable=False
     )
+
+    #all users the current user has liked, as well as all other users who like
+    #the current user
+    users_liked = db.relationship(
+        "User",
+        secondary="likes",
+        primaryjoin=(Like.user_liking == username),
+        secondaryjoin=(Like.user_being_liked == username),
+        backref="liked_by",
+    )
+
 
     @classmethod
     def signup(cls, username, password, hobbies, interests, location, radius=10):
@@ -94,3 +151,37 @@ class User(db.Model):
             "location": self.location,
             "radius": self.radius
         }
+
+
+
+
+
+
+
+
+
+
+# class Like(db.Model):
+#     """Table for user's likes/dislikes"""
+#     __tablename__ = 'likes'
+#     username1 = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     username2 = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     user1_liked = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )
+
+#     user2_liked = db.Column(
+#         db.Boolean,
+#         nullable=True
+#     )

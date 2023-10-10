@@ -28,17 +28,21 @@ connect_db(app)
 def check_for_token():
     """Check for token before each request"""
 
-    token = request.json.get('token')
+    token = request.headers.get('token')
+
+    # token = request.json.get('token')
 
     if token:
         payload = jwt.decode(
             token, os.environ['SECRET_KEY'], algorithms=['HS256'])
 
+        print('!!!!!!!!!!!!!! \n\n\n token is:', token)
         if payload['username']:
             g.user = User.query.get(payload['username'])
         else:
             g.user = None
     else:
+        print('!!!!!!!!!!!!!! \n\n\n token falsy, token is:', token)
         g.user = None
 
 
@@ -68,6 +72,10 @@ def signup():
 def login():
     """Route to login user, returns token or error message"""
 
+    # print(f"request json is: {request}")
+    # if request.json is None:
+    #     return ({'error': 'no json sent'})
+
     form = LoginForm(form_data=request.json, meta={'csrf': False})
     if form.validate_on_submit():
         token = User.authenticate(
@@ -80,11 +88,12 @@ def login():
 
     return jsonify({'error': "Username or password incorrect"})
 
+
+
+
 ####### User Routes ########
 
 # GET all users
-
-
 @app.get('/users')
 def get_all_users():
 
@@ -97,11 +106,11 @@ def get_all_users():
     return jsonify(users=serialized)
 
 
+
+
 # GET user detail
-
-
-@app.get('/users/<int:id>')
-def get_user_details():
+@app.get('/users/<string:username>')
+def get_user_details(username):
     user = User.query.get_or_404(id)
 
     serialized = user.serialize()
@@ -111,15 +120,49 @@ def get_user_details():
 # Find eligible users for liking/disliking. Filters all users by radius,
 # then, filter again to remove any they have liked/disliked previously.
 # return a list of remaining
-@app.get('/users/<int:id>/nearme')
-def get_eligible_users():
+@app.get('/users/<string:username>/nearme')
+def get_eligible_users(username):
     return False
 
 
 # Select all users who current user has matched with.
-@app.get('/users/<int:id>/matches')
-def get_matched_users():
+@app.get('/users/<string:username>/matches')
+def get_matched_users(username):
     return False
+
+
+
+#Fields they can update are?
+@app.patch('/users/<string:username>')
+def update_user(username):
+
+    if not g.user or g.user.username != username:
+        return jsonify({'error': 'unauthorized'})
+
+    # get_or_404 as alternative?
+    user = User.query.get(username)
+
+    user.hobbies = request.json.get('hobbies', user.hobbies)
+    user.interests = request.json.get('interests', user.interests)
+    user.location = request.json.get('location', user.location)
+    user.radius = request.json.get('radius', user.radius)
+
+    db.session.commit()
+
+    return jsonify(user.serialize())
+
+
+@app.delete('/users/<string:username>')
+def delete_user(username):
+
+    if not g.user or g.user.username != username:
+        return jsonify({'error': 'unauthorized'})
+
+    User.query.filter(User.username == username).delete()
+    db.session.commit()
+
+    return jsonify({"deleted": username})
+
 
 
 # #Like/Dislike a user (POST)
