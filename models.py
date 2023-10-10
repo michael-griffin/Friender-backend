@@ -8,6 +8,7 @@ import jwt
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
+
 def connect_db(app):
     """Connect to database."""
 
@@ -63,8 +64,9 @@ class User(db.Model):
 
         db.session.add(new_user)
 
-        #jwt encode token based off
-        jwt_token = jwt.encode(new_user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
+        # jwt encode token based off
+        jwt_token = jwt.encode(new_user.serialize(),
+                               os.environ['SECRET_KEY'], algorithm='HS256')
         return jwt_token
 
     @classmethod
@@ -73,11 +75,12 @@ class User(db.Model):
 
         user = cls.query.filter_by(username=username).one_or_none()
 
-        unhashed_pwd = bcrypt.check_password_hash(password)
+        if user:
 
-        if user.password == unhashed_pwd:
-            jwt_token = jwt.encode(user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
-            return jwt_token
+            if bcrypt.check_password_hash(user.password, password):
+                jwt_token = jwt.encode(
+                    user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
+                return jwt_token
         else:
             return False
 
@@ -86,8 +89,8 @@ class User(db.Model):
 
         return {
             "username": self.username,
-            "hobbies" : self.hobbies,
-            "interests" : self.interests,
-            "location" : self.location,
-            "radius" : self.radius
+            "hobbies": self.hobbies,
+            "interests": self.interests,
+            "location": self.location,
+            "radius": self.radius
         }
