@@ -1,10 +1,12 @@
 #Coming soon
 import os
 
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, jsonify, request, redirect, g
 from flask_debugtoolbar import DebugToolbarExtension
+import jwt
 
-from models import db, connect_db
+from models import db, connect_db, User
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -14,7 +16,41 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 connect_db(app)
 
+################# Auth Routes ###################
 
+@app.before_request
+def check_for_token():
+    token = request.json.get('token')
+
+    if token:
+        g.token = token
+
+
+@app.post('/signup')
+def sign_up():
+
+    form = SignupValidationForm()
+
+    if form.validate_on_submit():
+        try:
+            new_user = User.signup(username=form.username.data,
+                            password=form.password.data,
+                            hobbies=form.hobbies.data,
+                            interests=form.interests.data,
+                            location=form.location.data,
+                            radius=form.radius.data)
+
+            db.session.commit()
+        except IntegrityError:
+            return jsonify({'error': 'username already taken'})
+
+
+
+##signup route -> assuming successful signup, returns token (used to get user on front end). Possible error for incorrect signup
+
+##login -> returns token, error if invalid credentials
+
+##
 
 #GET all users
 @app.get('/users')
