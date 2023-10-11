@@ -39,9 +39,9 @@ class Rating(db.Model):
     )
 
     @classmethod
-    def add_rating(cls, user_who_rated, user_being_rated, rating):
+    def add_rating(cls, user_who_rated, user_being_rated, is_liked):
         rating = cls(user_who_rated=user_who_rated,
-                     user_being_rated=user_being_rated, is_liked=rating)
+                     user_being_rated=user_being_rated, is_liked=is_liked)
 
         db.session.add(rating)
 
@@ -82,8 +82,6 @@ class User(db.Model):
         db.Integer,
         nullable=False
     )
-
-
 
     # all users the current user has liked, as well as all other users who like
     # the current user
@@ -127,15 +125,12 @@ class User(db.Model):
         else:
             return False
 
-
     # def get_users_liked_v2(self):
     #     users = db.session.query(User, Rating
     #                             ).join(Rating, User.username == Rating.user_being_rated
     #                             ).filter(Rating.is_liked)
 
     #     return users
-
-
 
     def get_matches(self):
         ratings = Rating.query.all()
@@ -154,7 +149,6 @@ class User(db.Model):
 
         return matching_users
 
-
     def get_unrated(self):
         ratings = Rating.query.all()
         rated_users = [self.username]
@@ -166,8 +160,8 @@ class User(db.Model):
         unrated_users = User.query.filter(~ User.username.in_(rated_users))
         return unrated_users
 
+    # TODO: make location check smarter
 
-    #TODO: make location check smarter
     def get_eligible(self):
         unrated_users = self.get_unrated()
 
@@ -180,8 +174,6 @@ class User(db.Model):
         )
 
         return eligible_users
-
-
 
     def serialize(self):
         """Serialize to dictionary."""

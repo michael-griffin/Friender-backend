@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
 import jwt
 
-from models import db, connect_db, User
-from forms import SignupForm, LoginForm
+from models import db, connect_db, User, Rating
+from forms import SignupForm, LoginForm, RatingForm
 from sqlalchemy.exc import IntegrityError
 
 
@@ -107,7 +107,7 @@ def get_all_users():
 # GET user detail
 @app.get('/users/<string:username>')
 def get_user_details(username):
-    user = User.query.get_or_404(id)
+    user = User.query.get_or_404(username)
 
     serialized = user.serialize()
     return jsonify(user=serialized)
@@ -118,17 +118,27 @@ def get_user_details(username):
 # return a list of remaining
 @app.get('/users/<string:username>/nearme')
 def get_eligible_users(username):
-    return False
+    """Route to get unrated users within logged in user's search radius"""
+    user = User.query.get_or_404(username)
+
+    eligible = user.get_eligible().all()
+
+    eligible = [u.serialize() for u in eligible]
+
+    return jsonify(eligible=eligible)
 
 
 # Select all users who current user has matched with.
 @app.get('/users/<string:username>/matches')
 def get_matched_users(username):
+    """"""
 
-    # curr_user = User.query.get(username=username)
+    user = User.query.get_or_404(username)
 
-    # return jsonify({'username': username, 'matches': matches})
-    return False
+    matches = user.get_matches().all()
+    matches = [u.serialize() for u in matches]
+
+    return jsonify(matches=matches)
 
 
 # Fields they can update are?
@@ -163,22 +173,28 @@ def delete_user(username):
     return jsonify({"deleted": username})
 
 
-# #Like/Dislike a user (POST)
-# @app.post('/likes')
-# def toggle_like():
-#     likeStatus = request.json('like')
-#     fromUser = request.json('fromUser')
-#     toUser = request.json('toUser')
+# Like/Dislike a user (POST)
+@app.post('/rating')
+def rate_user():
+    """Route for one user to like another"""
 
-#     newLike = Like(likeStatus = likeStatus,
-#                     fromUser = fromUser,
-#                     toUser = toUser)
+    form = RatingForm(form_data=request.json, meta={'csrf': False})
 
-#     db.session.add(newLike)
-#     db.session.commit(newLike)
+    if form.validate_on_submit():
+        try:
 
-#     confirm_msg = {"message": "dislike successful"}
-#     return (jsonify(confirm_msg), 201)
+            Rating.add_rating(user_who_rated=form.user_who_rated.data,
+                              user_being_rated=form.user_being_rated.data,
+                              is_liked=form.is_liked.data)
+
+            db.session.commit()
+
+            return jsonify({'message': "rated user successfully"}, 201)
+
+        except IntegrityError:
+            return jsonify({'error': "Already rated user."})
+
+    return jsonify({'error': "invalid json data"})
 
 
 # #Add/log message between two users
