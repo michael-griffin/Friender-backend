@@ -190,9 +190,8 @@ class User(db.Model):
             "interests": self.interests,
             "location": self.location,
             "radius": self.radius,
-            "image_urls" : image_urls
+            "image_urls": image_urls
         }
-
 
 
 class Image(db.Model):
@@ -220,6 +219,7 @@ class Image(db.Model):
     @classmethod
     def add_image(cls, username, img_name):
         image = cls(username=username, img_name=img_name)
+        # call s3 method to add image
         db.session.add(image)
 
         return image

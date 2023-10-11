@@ -4,11 +4,13 @@ from dotenv import load_dotenv
 
 from flask import Flask, jsonify, request, g
 import jwt
+import tempfile
 
-from models import db, connect_db, User, Rating
+from models import db, connect_db, User, Rating, Image
 from forms import SignupForm, LoginForm, RatingForm
 from sqlalchemy.exc import IntegrityError
 
+from aws_utils import get_image_url, upload_image
 
 load_dotenv()
 
@@ -197,10 +199,19 @@ def rate_user():
     return jsonify({'error': "invalid json data"})
 
 
+@app.post('/users/<string:username>/image')
+def add_image(username):
+    """Route for uploading an image for user"""
+    image = request.files['image']
 
-# @app.get('/users/<string:username>/images'):
-# def get_user_images(username):
+    with tempfile.TemporaryDirectory() as temp:
+        image.save(os.path.join(temp, image.filename))
+        upload_image(os.path.join(temp, image.filename), image.filename)
 
+    Image.add_image(username, image.filename)
+    db.session.commit()
+
+    return jsonify({'message': 'Image added successfully.'}), 201
 
 
 # #Add/log message between two users
