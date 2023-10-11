@@ -197,6 +197,12 @@ def rate_user():
     return jsonify({'error': "invalid json data"})
 
 
+
+# @app.get('/users/<string:username>/images'):
+# def get_user_images(username):
+
+
+
 # #Add/log message between two users
 # @app.post('/messages')
 # def log_message():

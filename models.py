@@ -1,4 +1,5 @@
 import os
+from aws_utils import get_image_url
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -83,15 +84,18 @@ class User(db.Model):
         nullable=False
     )
 
+    images = db.relationship("Image", backref="user")
+
     # all users the current user has liked, as well as all other users who like
     # the current user
-    users_liked = db.relationship(
-        "User",
-        secondary="ratings",
-        primaryjoin=(Rating.user_who_rated == username),
-        secondaryjoin=(Rating.user_being_rated == username),
-        backref="rated_by",
-    )
+
+    # users_liked = db.relationship(
+    #     "User",
+    #     secondary="ratings",
+    #     primaryjoin=(Rating.user_who_rated == username),
+    #     secondaryjoin=(Rating.user_being_rated == username),
+    #     backref="rated_by",
+    # )
 
     @classmethod
     def signup(cls, username, password, hobbies, interests, location, radius=10):
@@ -178,82 +182,49 @@ class User(db.Model):
     def serialize(self):
         """Serialize to dictionary."""
 
+        image_urls = [i.serialize() for i in self.images]
+
         return {
             "username": self.username,
             "hobbies": self.hobbies,
             "interests": self.interests,
             "location": self.location,
-            "radius": self.radius
+            "radius": self.radius,
+            "image_urls" : image_urls
         }
 
 
-# class Like(db.Model):
-#     """Table for user's likes/dislikes"""
-#     __tablename__ = 'likes'
-#     username1 = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
 
-#     username2 = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
+class Image(db.Model):
+    """Model for images users have uploaded"""
 
-#     user1_liked = db.Column(
-#         db.Boolean,
-#         nullable=True
-#     )
+    __tablename__ = "images"
 
-#     user2_liked = db.Column(
-#         db.Boolean,
-#         nullable=True
-#     )
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
 
-# class Like(db.Model):
-#     """Table for user's likes"""
-#     __tablename__ = 'likes'
-#     user_liking = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
+    username = db.Column(
+        db.String(15),
+        db.ForeignKey('users.username', ondelete="cascade"),
+        nullable=False
+    )
 
-#     user_being_liked = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
+    img_name = db.Column(
+        db.String(),
+        nullable=False
+    )
 
-#     @classmethod
-#     def add_like(cls, user_liking, user_being_liked):
-#         like = cls(user_liking=user_liking, user_being_liked=user_being_liked)
-#         db.session.add(like)
+    @classmethod
+    def add_image(cls, username, img_name):
+        image = cls(username=username, img_name=img_name)
+        db.session.add(image)
 
-#         return like
+        return image
 
-
-# class DisLike(db.Model):
-#     """Table for user's likes"""
-#     __tablename__ = 'dislikes'
-#     user_disliking = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
-
-#     user_being_disliked = db.Column(
-#         db.String,
-#         db.ForeignKey('users.username', ondelete="cascade"),
-#         primary_key=True
-#     )
-
-#     @classmethod
-#     def add_dislike(cls, user_disliking, user_being_disliked):
-#         dislike = cls(user_disliking=user_disliking,
-#                       user_being_disliked=user_being_disliked)
-#         db.session.add(dislike)
-
-#         return dislike
+    def serialize(self):
+        """calls s3 function to return a pre-signed url, expires in 1 hour."""
+        image_url = get_image_url(self.img_name)
+        return image_url
