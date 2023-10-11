@@ -83,9 +83,11 @@ class User(db.Model):
         nullable=False
     )
 
+
+
     # all users the current user has liked, as well as all other users who like
     # the current user
-    users_rated = db.relationship(
+    users_liked = db.relationship(
         "User",
         secondary="ratings",
         primaryjoin=(Rating.user_who_rated == username),
@@ -125,10 +127,61 @@ class User(db.Model):
         else:
             return False
 
-    def get_users_liked(self):
-        ratings = db.session.query(User, Rating).join(Rating).all()
 
-        return ratings
+    # def get_users_liked_v2(self):
+    #     users = db.session.query(User, Rating
+    #                             ).join(Rating, User.username == Rating.user_being_rated
+    #                             ).filter(Rating.is_liked)
+
+    #     return users
+
+
+
+    def get_matches(self):
+        ratings = Rating.query.all()
+
+        users_liked = []
+        users_liking_you = []
+        for rating in ratings:
+            if rating.user_who_rated == self.username and rating.is_liked:
+                users_liked.append(rating.user_being_rated)
+
+            if rating.user_being_rated == self.username and rating.is_liked:
+                users_liking_you.append(rating.user_who_rated)
+
+        matches = list(set(users_liked) & set(users_liking_you))
+        matching_users = User.query.filter(User.username.in_(matches))
+
+        return matching_users
+
+
+    def get_unrated(self):
+        ratings = Rating.query.all()
+        rated_users = [self.username]
+
+        for rating in ratings:
+            if rating.user_who_rated == self.username:
+                rated_users.append(rating.user_being_rated)
+
+        unrated_users = User.query.filter(~ User.username.in_(rated_users))
+        return unrated_users
+
+
+    #TODO: make location check smarter
+    def get_eligible(self):
+        unrated_users = self.get_unrated()
+
+        min_location = self.location - self.radius
+        max_location = self.location + self.radius
+
+        eligible_users = unrated_users.filter(
+            User.location <= max_location,
+            User.location >= min_location
+        )
+
+        return eligible_users
+
+
 
     def serialize(self):
         """Serialize to dictionary."""

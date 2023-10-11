@@ -34,6 +34,8 @@ db.session.commit()
 # dislike2 = DisLike.add_dislike('test_user2', 'test_user3')
 
 rating1 = Rating.add_rating('test_user1', 'test_user2', True)
+rating2 = Rating.add_rating('test_user2', 'test_user1', True)
+rating3 = Rating.add_rating('test_user1', 'test_user3', True)
 
 
 db.session.commit()
