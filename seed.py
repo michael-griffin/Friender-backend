@@ -1,5 +1,5 @@
 from app import db
-from models import User, Like, DisLike #, Message, Like
+from models import User, Rating  # , Message, Like
 
 db.drop_all()
 db.create_all()
@@ -27,10 +27,13 @@ user3 = User.signup(username='test_user3',
 db.session.commit()
 
 # #Still need to add likes
-like1 = Like.add_like('test_user1', 'test_user2')
-like2 = Like.add_like('test_user1', 'test_user3')
+# like1 = Like.add_like('test_user1', 'test_user2')
+# like2 = Like.add_like('test_user1', 'test_user3')
 
-dislike1 = DisLike.add_dislike('test_user1', 'test_user3')
-dislike2 = DisLike.add_dislike('test_user2', 'test_user3')
+# dislike1 = DisLike.add_dislike('test_user1', 'test_user3')
+# dislike2 = DisLike.add_dislike('test_user2', 'test_user3')
+
+rating1 = Rating.add_rating('test_user1', 'test_user2', True)
+
 
 db.session.commit()

@@ -17,51 +17,36 @@ def connect_db(app):
     db.init_app(app)
 
 
-class Like(db.Model):
-    """Table for user's likes"""
-    __tablename__ = 'likes'
-    user_liking = db.Column(
+class Rating(db.Model):
+    """Table for user's likes/dislikes"""
+    __tablename__ = 'ratings'
+
+    user_who_rated = db.Column(
         db.String,
         db.ForeignKey('users.username', ondelete="cascade"),
         primary_key=True
     )
 
-    user_being_liked = db.Column(
+    user_being_rated = db.Column(
         db.String,
         db.ForeignKey('users.username', ondelete="cascade"),
         primary_key=True
     )
 
-    @classmethod
-    def add_like(cls, user_liking, user_being_liked):
-        like = cls(user_liking=user_liking, user_being_liked=user_being_liked)
-        db.session.add(like)
-
-        return like
-
-
-class DisLike(db.Model):
-    """Table for user's likes"""
-    __tablename__ = 'dislikes'
-    user_disliking = db.Column(
-        db.String,
-        db.ForeignKey('users.username', ondelete="cascade"),
-        primary_key=True
-    )
-
-    user_being_disliked = db.Column(
-        db.String,
-        db.ForeignKey('users.username', ondelete="cascade"),
-        primary_key=True
+    is_liked = db.Column(
+        db.Boolean,
+        nullable=False
     )
 
     @classmethod
-    def add_dislike(cls, user_disliking, user_being_disliked):
-        dislike = cls(user_disliking=user_disliking,
-                      user_being_disliked=user_being_disliked)
-        db.session.add(dislike)
+    def add_rating(cls, user_who_rated, user_being_rated, rating):
+        rating = cls(user_who_rated=user_who_rated,
+                     user_being_rated=user_being_rated, is_liked=rating)
 
-        return dislike
+        db.session.add(rating)
+
+        return rating
+
 
 class User(db.Model):
     """Model for User in Friender"""
@@ -98,16 +83,15 @@ class User(db.Model):
         nullable=False
     )
 
-    #all users the current user has liked, as well as all other users who like
-    #the current user
-    users_liked = db.relationship(
+    # all users the current user has liked, as well as all other users who like
+    # the current user
+    users_rated = db.relationship(
         "User",
-        secondary="likes",
-        primaryjoin=(Like.user_liking == username),
-        secondaryjoin=(Like.user_being_liked == username),
-        backref="liked_by",
+        secondary="ratings",
+        primaryjoin=(Rating.user_who_rated == username),
+        secondaryjoin=(Rating.user_being_rated == username),
+        backref="rated_by",
     )
-
 
     @classmethod
     def signup(cls, username, password, hobbies, interests, location, radius=10):
@@ -141,6 +125,11 @@ class User(db.Model):
         else:
             return False
 
+    def get_users_liked(self):
+        ratings = db.session.query(User, Rating).join(Rating).all()
+
+        return ratings
+
     def serialize(self):
         """Serialize to dictionary."""
 
@@ -151,14 +140,6 @@ class User(db.Model):
             "location": self.location,
             "radius": self.radius
         }
-
-
-
-
-
-
-
-
 
 
 # class Like(db.Model):
@@ -185,3 +166,49 @@ class User(db.Model):
 #         db.Boolean,
 #         nullable=True
 #     )
+
+# class Like(db.Model):
+#     """Table for user's likes"""
+#     __tablename__ = 'likes'
+#     user_liking = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     user_being_liked = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     @classmethod
+#     def add_like(cls, user_liking, user_being_liked):
+#         like = cls(user_liking=user_liking, user_being_liked=user_being_liked)
+#         db.session.add(like)
+
+#         return like
+
+
+# class DisLike(db.Model):
+#     """Table for user's likes"""
+#     __tablename__ = 'dislikes'
+#     user_disliking = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     user_being_disliked = db.Column(
+#         db.String,
+#         db.ForeignKey('users.username', ondelete="cascade"),
+#         primary_key=True
+#     )
+
+#     @classmethod
+#     def add_dislike(cls, user_disliking, user_being_disliked):
+#         dislike = cls(user_disliking=user_disliking,
+#                       user_being_disliked=user_being_disliked)
+#         db.session.add(dislike)
+
+#         return dislike

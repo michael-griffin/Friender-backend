@@ -89,8 +89,6 @@ def login():
     return jsonify({'error': "Username or password incorrect"})
 
 
-
-
 ####### User Routes ########
 
 # GET all users
@@ -104,8 +102,6 @@ def get_all_users():
 
     serialized = [user.serialize() for user in users]
     return jsonify(users=serialized)
-
-
 
 
 # GET user detail
@@ -128,11 +124,14 @@ def get_eligible_users(username):
 # Select all users who current user has matched with.
 @app.get('/users/<string:username>/matches')
 def get_matched_users(username):
+
+    # curr_user = User.query.get(username=username)
+
+    # return jsonify({'username': username, 'matches': matches})
     return False
 
 
-
-#Fields they can update are?
+# Fields they can update are?
 @app.patch('/users/<string:username>')
 def update_user(username):
 
@@ -162,7 +161,6 @@ def delete_user(username):
     db.session.commit()
 
     return jsonify({"deleted": username})
-
 
 
 # #Like/Dislike a user (POST)
