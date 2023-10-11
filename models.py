@@ -110,7 +110,7 @@ class User(db.Model):
         db.session.add(new_user)
 
         # jwt encode token based off
-        jwt_token = jwt.encode(new_user.serialize(),
+        jwt_token = jwt.encode({'username': new_user.username},
                                os.environ['SECRET_KEY'], algorithm='HS256')
         return jwt_token
 
@@ -124,7 +124,7 @@ class User(db.Model):
 
             if bcrypt.check_password_hash(user.password, password):
                 jwt_token = jwt.encode(
-                    user.serialize(), os.environ['SECRET_KEY'], algorithm='HS256')
+                    {'username': user.username}, os.environ['SECRET_KEY'], algorithm='HS256')
                 return jwt_token
         else:
             return False
