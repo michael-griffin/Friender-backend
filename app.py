@@ -38,13 +38,11 @@ def check_for_token():
         payload = jwt.decode(
             token, os.environ['SECRET_KEY'], algorithms=['HS256'])
 
-        print('!!!!!!!!!!!!!! \n\n\n token is:', token)
         if payload['username']:
             g.user = User.query.get(payload['username'])
         else:
             g.user = None
     else:
-        print('!!!!!!!!!!!!!! \n\n\n token falsy, token is:', token)
         g.user = None
 
 
@@ -84,10 +82,6 @@ def signup():
 @app.post('/login')
 def login():
     """Route to login user, returns token or error message"""
-
-    # print(f"request json is: {request}")
-    # if request.json is None:
-    #     return ({'error': 'no json sent'})
 
     form = LoginForm(form_data=request.json, meta={'csrf': False})
     if form.validate_on_submit():
@@ -210,9 +204,10 @@ def rate_user():
     return jsonify({'error': "invalid json data"})
 
 
-@app.post('/users/<string:username>/image')
+@app.post('/users/<username>/image')
 def add_image(username):
     """Route for uploading an image for user"""
+
     image = request.files['image']
 
     with tempfile.TemporaryDirectory() as temp:
@@ -222,7 +217,9 @@ def add_image(username):
     Image.add_image(username, image.filename)
     db.session.commit()
 
-    return jsonify({'message': 'Image added successfully.'}), 201
+    user = User.query.get(username)
+
+    return jsonify(user.serialize()), 201
 
 
 # #Add/log message between two users
