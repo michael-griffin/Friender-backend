@@ -184,7 +184,6 @@ def delete_user(username):
 @app.post('/rating')
 def rate_user():
     """Route for one user to like another"""
-
     form = RatingForm(form_data=request.json, meta={'csrf': False})
 
     if form.validate_on_submit():

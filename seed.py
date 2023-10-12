@@ -24,6 +24,28 @@ user3 = User.signup(username='test_user3',
                     location=10003,
                     radius=2)
 
+user4 = User.signup(username='test_user4',
+                    password='password',
+                    hobbies='not much',
+                    interests='testing',
+                    location=10002,
+                    radius=2)
+
+user5 = User.signup(username='test_user5',
+                    password='password',
+                    hobbies='not much',
+                    interests='testing',
+                    location=10002,
+                    radius=2)
+
+user6 = User.signup(username='test_user6',
+                    password='password',
+                    hobbies='living away from people',
+                    interests='testing',
+                    location=60002,
+                    radius=2)
+
+
 db.session.commit()
 
 rating1 = Rating.add_rating('test_user1', 'test_user2', True)
