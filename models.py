@@ -49,6 +49,51 @@ class Rating(db.Model):
         return rating
 
 
+class Message(db.Model):
+    """Table for user's likes/dislikes"""
+    __tablename__ = 'messages'
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    sender = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+    )
+
+    receiver = db.Column(
+        db.String,
+        db.ForeignKey('users.username', ondelete="cascade"),
+    )
+
+    message = db.Column(
+        db.String,
+        nullable=False
+    )
+
+    @classmethod
+    def add_message(cls, sender, receiver, message):
+        new_message = cls(sender=sender,
+                     receiver=receiver, message=message)
+
+        db.session.add(new_message)
+
+        return new_message
+
+    def serialize(self):
+        """Serialize to dictionary."""
+
+        return {
+            "id": self.id,
+            "sender": self.sender,
+            "receiver": self.receiver,
+            "message": self.message,
+        }
+
+
+
 class User(db.Model):
     """Model for User in Friender"""
 
@@ -85,6 +130,24 @@ class User(db.Model):
     )
 
     images = db.relationship("Image", backref="user")
+
+    # messages_received = db.relationship("Message",
+    #     primaryjoin=(Message.receiver == username),
+    #     backref="receiver")
+
+    # messages_sent = db.relationship("Message",
+    #     primaryjoin=(Message.sender == username),
+    #     backref="sender")
+
+    def get_messages(self, other_username):
+        messages = Message.query.filter(
+            (Message.sender == self.username & Message.receiver == other_username) |
+            (Message.receiver == self.username & Message.sender == other_username) )
+
+        messages = [m.serialize() for m in messages]
+
+        return messages
+
 
     # all users the current user has liked, as well as all other users who like
     # the current user

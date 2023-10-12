@@ -6,8 +6,8 @@ from flask import Flask, jsonify, request, g
 import jwt
 import tempfile
 
-from models import db, connect_db, User, Rating, Image
-from forms import SignupForm, LoginForm, RatingForm
+from models import db, connect_db, User, Rating, Image, Message
+from forms import SignupForm, LoginForm, RatingForm, MessageForm
 from sqlalchemy.exc import IntegrityError
 
 from aws_utils import get_image_url, upload_image
@@ -219,6 +219,43 @@ def add_image(username):
     user = User.query.get(username)
 
     return jsonify(user.serialize()), 201
+
+
+
+#   def get_messages(self, other_username):
+#         messages = Message.query.filter(
+#             (Message.sender == self.username & Message.receiver == other_username) |
+#             (Message.receiver == self.username & Message.sender == other_username) )
+
+#         messages = [m.serialize() for m in messages]
+
+#         return messages
+
+@app.get('/users/<username>/messages')
+def get_all_messages(username):
+
+    User.get_messages
+
+
+
+@app.post('/users/<username>/message')
+def add_message(username):
+    form = MessageForm(form_data=request.json, meta={'csrf': False})
+
+    if form.validate_on_submit():
+        try:
+            new_message = Message.add_message(
+                sender=form.sender.data,
+                receiver=form.receiver.data,
+                message=form.message.data)
+
+            db.session.commit()
+
+            return (jsonify({'message' : new_message.serialize()}), 201)
+        except IntegrityError:
+            return jsonify({'error': 'failed to add message'})
+
+    return jsonify({'error': 'invalid data for adding new message'})
 
 
 # #Add/log message between two users

@@ -37,3 +37,16 @@ class RatingForm(FlaskForm):
         InputRequired(), Length(max=15)])
 
     is_liked = BooleanField("Is Liked", validators=[InputRequired()])
+
+
+
+class MessageForm(FlaskForm):
+    """form for one user to rate another"""
+
+    sender = StringField('Sender', validators=[
+                                 InputRequired(), Length(max=15)])
+
+    receiver = StringField('Receiver', validators=[
+        InputRequired(), Length(max=15)])
+
+    message = StringField("Is Liked", validators=[InputRequired()])

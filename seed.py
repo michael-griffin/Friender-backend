@@ -1,5 +1,5 @@
 from app import db
-from models import User, Rating, Image  # , Message, Like
+from models import User, Rating, Image, Message #, Like
 
 db.drop_all()
 db.create_all()
@@ -47,13 +47,18 @@ user6 = User.signup(username='test_user6',
 
 
 db.session.commit()
+image1 = Image.add_image('test_user1', 'Dawid-Planeta-fox.jpg')
+image2 = Image.add_image('test_user1', 'Dawid-Planeta-whale.jpg')
+image3 = Image.add_image('test_user3', 'mem-game2.png')
+
 
 rating1 = Rating.add_rating('test_user1', 'test_user2', True)
 rating2 = Rating.add_rating('test_user2', 'test_user1', True)
 rating3 = Rating.add_rating('test_user1', 'test_user3', True)
 
-image1 = Image.add_image('test_user1', 'Dawid-Planeta-fox.jpg')
-image2 = Image.add_image('test_user1', 'Dawid-Planeta-whale.jpg')
-image3 = Image.add_image('test_user3', 'mem-game2.png')
+message1 = Message.add_message('test_user1', 'test_user2', 'first')
+message2 = Message.add_message('test_user2', 'test_user1', 'second')
+message3 = Message.add_message('test_user1', 'test_user2', 'how are you doing today?')
+
 
 db.session.commit()
