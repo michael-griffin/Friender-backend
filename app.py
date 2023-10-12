@@ -51,9 +51,11 @@ def check_for_token():
 @app.after_request
 def after_request(response):
     header = response.headers
-    header.add("Access-Control-Allow-Origin", "*")
-    header.add('Access-Control-Allow-Headers', "*")
+    header.add('Access-Control-Allow-Origin', '*')
+    header.add('Access-Control-Allow-Headers', '*')
+    header.add('Access-Control-Allow-Methods', '*')
     header['Access-Control-Allow-Origin'] = '*'
+
     return response
 
 
@@ -121,7 +123,7 @@ def get_user_details(username):
     user = User.query.get_or_404(username)
 
     serialized = user.serialize()
-    return jsonify(user=serialized)
+    return jsonify(serialized)
 
 
 # Find eligible users for liking/disliking. Filters all users by radius,
