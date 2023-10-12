@@ -54,6 +54,6 @@ rating3 = Rating.add_rating('test_user1', 'test_user3', True)
 
 image1 = Image.add_image('test_user1', 'Dawid-Planeta-fox.jpg')
 image2 = Image.add_image('test_user1', 'Dawid-Planeta-whale.jpg')
-image3 = Image.add_image('test_user3', 'mem-game2.jpg')
+image3 = Image.add_image('test_user3', 'mem-game2.png')
 
 db.session.commit()
