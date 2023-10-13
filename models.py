@@ -129,7 +129,9 @@ class User(db.Model):
         nullable=False
     )
 
+
     images = db.relationship("Image", backref="user")
+
 
     def get_messages(self, other_username):
         messages = Message.query.filter(
@@ -152,7 +154,7 @@ class User(db.Model):
 
         db.session.add(new_user)
 
-        # jwt encode token based off
+        # jwt encode token based off secret key
         jwt_token = jwt.encode({'username': new_user.username},
                                os.environ['SECRET_KEY'], algorithm='HS256')
         return jwt_token
@@ -164,13 +166,13 @@ class User(db.Model):
         user = cls.query.filter_by(username=username).one_or_none()
 
         if user:
-
             if bcrypt.check_password_hash(user.password, password):
                 jwt_token = jwt.encode(
                     {'username': user.username}, os.environ['SECRET_KEY'], algorithm='HS256')
                 return jwt_token
         else:
             return False
+
 
     def get_matches(self):
         ratings = Rating.query.all()
@@ -189,6 +191,7 @@ class User(db.Model):
 
         return matching_users
 
+
     def get_unrated(self):
         ratings = Rating.query.all()
         rated_users = [self.username]
@@ -200,22 +203,20 @@ class User(db.Model):
         unrated_users = User.query.filter(~ User.username.in_(rated_users))
         return unrated_users
 
+
     def get_eligible(self):
         unrated_users = self.get_unrated()
 
-        eligible_users = [u.serialize() for u in unrated_users]
-
         def get_user_with_distance(u):
             u['distance'] = get_distance(u['location'], self.location)
-
             return u
 
+        eligible_users = [u.serialize() for u in unrated_users]
         eligible_users = [get_user_with_distance(u) for u in eligible_users]
-
-        eligible_users = [
-            u for u in eligible_users if u['distance'] <= self.radius]
+        eligible_users = [u for u in eligible_users if u['distance'] <= self.radius]
 
         return eligible_users
+
 
     def serialize(self):
         """Serialize to dictionary."""
