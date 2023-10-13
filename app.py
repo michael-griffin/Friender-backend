@@ -10,7 +10,7 @@ from models import db, connect_db, User, Rating, Image, Message
 from forms import SignupForm, LoginForm, RatingForm, MessageForm
 from sqlalchemy.exc import IntegrityError
 
-from aws_utils import get_image_url, upload_image
+from aws_utils import upload_image
 
 load_dotenv()
 
@@ -221,7 +221,6 @@ def add_image(username):
     return jsonify(user.serialize()), 201
 
 
-
 #   def get_messages(self, other_username):
 #         messages = Message.query.filter(
 #             (Message.sender == self.username & Message.receiver == other_username) |
@@ -231,11 +230,14 @@ def add_image(username):
 
 #         return messages
 
-@app.get('/users/<username>/messages')
-def get_all_messages(username):
+@app.get('/users/<username>/messages/<other_username>')
+def get_all_messages(username, other_username):
 
-    User.get_messages
+    user = User.query.get(username)
 
+    messages = user.get_messages(other_username)
+
+    return jsonify(messages=messages)
 
 
 @app.post('/users/<username>/message')
@@ -251,7 +253,7 @@ def add_message(username):
 
             db.session.commit()
 
-            return (jsonify({'message' : new_message.serialize()}), 201)
+            return (jsonify({'message': new_message.serialize()}), 201)
         except IntegrityError:
             return jsonify({'error': 'failed to add message'})
 

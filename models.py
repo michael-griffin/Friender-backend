@@ -76,7 +76,7 @@ class Message(db.Model):
     @classmethod
     def add_message(cls, sender, receiver, message):
         new_message = cls(sender=sender,
-                     receiver=receiver, message=message)
+                          receiver=receiver, message=message)
 
         db.session.add(new_message)
 
@@ -91,7 +91,6 @@ class Message(db.Model):
             "receiver": self.receiver,
             "message": self.message,
         }
-
 
 
 class User(db.Model):
@@ -141,13 +140,12 @@ class User(db.Model):
 
     def get_messages(self, other_username):
         messages = Message.query.filter(
-            (Message.sender == self.username & Message.receiver == other_username) |
-            (Message.receiver == self.username & Message.sender == other_username) )
+            ((Message.sender == self.username) & (Message.receiver == other_username)) |
+            ((Message.receiver == self.username) & (Message.sender == other_username)))
 
         messages = [m.serialize() for m in messages]
 
         return messages
-
 
     # all users the current user has liked, as well as all other users who like
     # the current user
