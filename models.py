@@ -1,5 +1,6 @@
 import os
 from aws_utils import get_image_url
+from distance_utils import get_distance
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -225,18 +226,20 @@ class User(db.Model):
         unrated_users = User.query.filter(~ User.username.in_(rated_users))
         return unrated_users
 
-    # TODO: make location check smarter
-
     def get_eligible(self):
         unrated_users = self.get_unrated()
 
-        min_location = self.location - self.radius
-        max_location = self.location + self.radius
+        eligible_users = [u.serialize() for u in unrated_users]
 
-        eligible_users = unrated_users.filter(
-            User.location <= max_location,
-            User.location >= min_location
-        )
+        def get_user_with_distance(u):
+            u['distance'] = get_distance(u['location'], self.location)
+
+            return u
+
+        eligible_users = [get_user_with_distance(u) for u in eligible_users]
+
+        eligible_users = [
+            u for u in eligible_users if u['distance'] <= self.radius]
 
         return eligible_users
 

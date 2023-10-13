@@ -128,9 +128,7 @@ def get_eligible_users(username):
     """Route to get unrated users within logged in user's search radius"""
     user = User.query.get_or_404(username)
 
-    eligible = user.get_eligible().all()
-
-    eligible = [u.serialize() for u in eligible]
+    eligible = user.get_eligible()
 
     return jsonify(eligible=eligible)
 
@@ -221,15 +219,6 @@ def add_image(username):
     return jsonify(user.serialize()), 201
 
 
-#   def get_messages(self, other_username):
-#         messages = Message.query.filter(
-#             (Message.sender == self.username & Message.receiver == other_username) |
-#             (Message.receiver == self.username & Message.sender == other_username) )
-
-#         messages = [m.serialize() for m in messages]
-
-#         return messages
-
 @app.get('/users/<username>/messages/<other_username>')
 def get_all_messages(username, other_username):
 
@@ -258,20 +247,3 @@ def add_message(username):
             return jsonify({'error': 'failed to add message'})
 
     return jsonify({'error': 'invalid data for adding new message'})
-
-
-# #Add/log message between two users
-# @app.post('/messages')
-# def log_message():
-#     message = request.json('message')
-#     fromUser = request.json('fromUser')
-#     toUser = request.json('toUser')
-
-#     newMessage = Message(message = message,
-#                          fromUser = fromUser,
-#                          toUser = toUser)
-
-#     db.session.add(newMessage)
-#     db.session.commit()
-
-#     return (jsonify(newMessage.serialize()), 201)
