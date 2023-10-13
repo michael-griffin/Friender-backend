@@ -69,7 +69,7 @@ user9 = User.signup(username='test_user9',
                     location=10012,
                     radius=50)
 
-user10 = User.signup(username='test_user6',
+user10 = User.signup(username='test_user10',
                     password='password',
                     hobbies='living away from people',
                     interests='being alone',
