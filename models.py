@@ -131,14 +131,6 @@ class User(db.Model):
 
     images = db.relationship("Image", backref="user")
 
-    # messages_received = db.relationship("Message",
-    #     primaryjoin=(Message.receiver == username),
-    #     backref="receiver")
-
-    # messages_sent = db.relationship("Message",
-    #     primaryjoin=(Message.sender == username),
-    #     backref="sender")
-
     def get_messages(self, other_username):
         messages = Message.query.filter(
             ((Message.sender == self.username) & (Message.receiver == other_username)) |
@@ -147,17 +139,6 @@ class User(db.Model):
         messages = [m.serialize() for m in messages]
 
         return messages
-
-    # all users the current user has liked, as well as all other users who like
-    # the current user
-
-    # users_liked = db.relationship(
-    #     "User",
-    #     secondary="ratings",
-    #     primaryjoin=(Rating.user_who_rated == username),
-    #     secondaryjoin=(Rating.user_being_rated == username),
-    #     backref="rated_by",
-    # )
 
     @classmethod
     def signup(cls, username, password, hobbies, interests, location, radius=10):
@@ -190,13 +171,6 @@ class User(db.Model):
                 return jwt_token
         else:
             return False
-
-    # def get_users_liked_v2(self):
-    #     users = db.session.query(User, Rating
-    #                             ).join(Rating, User.username == Rating.user_being_rated
-    #                             ).filter(Rating.is_liked)
-
-    #     return users
 
     def get_matches(self):
         ratings = Rating.query.all()
