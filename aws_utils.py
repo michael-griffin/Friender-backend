@@ -15,7 +15,7 @@ bucket_name = 'r33-friender-mg-dz'
 
 
 # Below is needed for pre-signed URLs: signature version must be updated,
-# Region name is a hacky workaround to an error I was getting.
+# Region name should match that of bucket we're using.
 
 session = boto3.session.Session(region_name='us-east-2')
 s3 = session.client(
@@ -33,15 +33,36 @@ def get_image_url(img_name):
     return signed_url
 
 
+def upload_image(filepath, img_filename):
+    s3.upload_file(filepath, bucket_name, img_filename)
+    return "upload complete"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Upload file to bucket
 # def upload_image(img_filename):
 #     s3.upload_file(f"./{img_filename}.png", bucket_name, img_filename)
 #     return "upload complete"
 
 
-def upload_image(filepath, img_filename):
-    s3.upload_file(filepath, bucket_name, img_filename)
-    return "upload complete"
+
 # with open("./meme-gen.png", "rb") as file:
 #     s3.upload_fileobj(file, bucket_name, "meme-gen.png",
 #                       ExtraArgs={"ACL": "public-read"})
