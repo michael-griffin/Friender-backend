@@ -15,8 +15,12 @@ from aws_utils import upload_image
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    "DATABASE_URL", 'postgresql:///friender')
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+#     "DATABASE_URL", 'postgresql:///friender')
+
+## Update for Heroku:
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres://", "postgresql://", 1)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
